@@ -1,9 +1,10 @@
-<p>
+<h1>{{title}}</h1>
+<p *ngIf="pokemon">
   pokemon: {{pokemon | json}}
 </p>
-<p>
+<p *ngIf="starWarsCharacter">
   characters: {{starWarsCharacter | json}}
 </p>
-<p>
+<p *ngIf="starWarsPlanet">
   planet: {{starWarsPlanet | json}}
 </p>

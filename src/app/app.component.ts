@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { PokemonService } from './pokemon.service';
 import { StarWarsService } from './star-wars.service';
-import { map } from 'rxjs';
+import { combineLatest, map, Observable, of, startWith, take } from 'rxjs';
 import { ChatGptService } from './chatgpt.service';
 
 @Component({
@@ -10,7 +10,7 @@ import { ChatGptService } from './chatgpt.service';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements OnInit {
-  title = 'aderesoapp';
+  title = 'Aderesoapp';
 
   pokemon: IPokemon | undefined;
   starWarsCharacter: IStarWarsCharacter | undefined;
@@ -23,16 +23,9 @@ export class AppComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    //Called after the constructor, initializing input properties, and the first call to ngOnChanges.
-    //Add 'implements OnInit' to the class.
-    const pokemonName = 'pikachu';
-    this.getPokemonByName(pokemonName);
-
-    const characterName = 'Luke Skywalker';
-    this.getCharacterByName(characterName);
-
-    const planetName = 'Tatooine';
-    this.getPlanetByName(planetName);
+    let planet$: Observable<IStarWarsPlanet>;
+    let character$: Observable<IStarWarsCharacter>;
+    let pokemon$: Observable<IPokemon>;
 
     const body = {
       'model': 'gpt-4o-mini',
@@ -77,14 +70,71 @@ export class AppComponent implements OnInit {
           `},
       ]
     };
-    this._chatGptService.sendMessage(body).subscribe((response) => {
-      console.log('ChatGPT response:', response.choices[0].message.content);
-      console.log('ChatGPT response:', JSON.parse(response.choices[0].message.content));
+    this._chatGptService.sendMessage(body)
+    .pipe(
+      map((response: any) => JSON.parse(response.choices[0].message.content))
+    )
+    .subscribe((response: IChatGptResponse) => {
+      console.log('ChatGPT response:', response);
+      for (const key in response.operands) {
+        const operand = response.operands[key];
+        if (key === OperandsKeys.Character) {
+          character$ = this.getCharacterByName(operand.name);
+        } else if (key === OperandsKeys.Pokemon) {
+          pokemon$ = this.getPokemonByName(operand.name);
+        } else if (key === OperandsKeys.Planet) {
+          planet$ = this.getPlanetByName(operand.name);
+        }
+      }
+
+
+      combineLatestWithOptional(
+        planet$,
+        character$,
+        pokemon$,
+      )
+      .subscribe(([planet, character, pokemon]) => {
+        console.log('Subscriptions:', planet, character, pokemon);
+        this.starWarsPlanet = planet as unknown as IStarWarsPlanet;
+        this.starWarsCharacter = character as unknown as IStarWarsCharacter;
+        this.pokemon = pokemon as unknown as IPokemon;
+
+        // const operation = response.operation;
+        // const operands = response.operands;
+
+        let result: number | string;
+        // switch (operation) {
+        //   case Operation.addition:
+        //     result = character.height + pokemon.base_experience;
+        //     break;
+        //   case Operation.subtraction:
+        //     result = character.height - pokemon.base_experience;
+        //     break;
+        //   case Operation.multiplication:
+        //     result = character.height * pokemon.base_experience;
+        //     break;
+        //   case Operation.division:
+        //     result = character.height / pokemon.base_experience;
+        //     break;
+        //   case Operation.exponentiation:
+        //     result = Math.pow(character.height, pokemon.base_experience);
+        //     break;
+        //   case Operation.modulus:
+        //     result = character.height % pokemon.base_experience;
+        //     break;
+        //   case Operation.square_root:
+        //     result = Math.sqrt(character.height);
+        //     break;
+        //   default:
+        //     result = 'Invalid operation';
+        // }
+        // console.log('Result:', result);
+      });
     });
   }
 
-  private getPlanetByName(planetName: string) {
-    this._starWarsService.getPlanetDetailsByName(planetName)
+  private getPlanetByName(planetName: string): Observable<IStarWarsPlanet> {
+    return this._starWarsService.getPlanetDetailsByName(planetName)
       .pipe(
         map((data: any) => {
           // transform to get next properties name, height, mass, homeworld
@@ -98,14 +148,11 @@ export class AppComponent implements OnInit {
             population: data.population,
           };
         })
-      )
-      .subscribe(data => {
-        this.starWarsPlanet = data;
-      });
+      );
   }
 
-  private getCharacterByName(characterName: string) {
-    this._starWarsService.getPersonDetailsByName(characterName)
+  private getCharacterByName(characterName: string): Observable<IStarWarsCharacter> {
+    return this._starWarsService.getPersonDetailsByName(characterName)
       .pipe(
         map((data: any) => {
           data = data.results[0];
@@ -116,14 +163,11 @@ export class AppComponent implements OnInit {
             homeworld: data.homeworld,
           };
         })
-      )
-      .subscribe(data => {
-        this.starWarsCharacter = data;
-      });
+      );
   }
 
-  private getPokemonByName(pokemonName: string) {
-    this._pokemonService.getPokemonDetails(pokemonName)
+  private getPokemonByName(pokemonName: string): Observable<IPokemon> {
+    return this._pokemonService.getPokemonDetails(pokemonName)
       .pipe(
         map((data: any) => ({
           name: data.name,
@@ -131,30 +175,61 @@ export class AppComponent implements OnInit {
           height: data.height,
           weight: data.weight,
         }))
-      )
-      .subscribe(data => {
-        this.pokemon = data;
-      });
+      );
   }
 }
 
-declare interface IPokemon {
+interface IPokemon {
   name: string;
   base_experience: number;
   height: number;
   weight: number;
 }
-declare interface IStarWarsCharacter {
+interface IStarWarsCharacter {
   name: string;
   height: number;
   mass: number;
   homeworld: string;
 }
-declare interface IStarWarsPlanet {
+interface IStarWarsPlanet {
   name: string;
   rotation_period: number;
   orbital_period: number;
   diameter: number;
   surface_water: number;
   population: number;
+}
+
+interface IChatGptResponse {
+  operation: Operation,
+  operands: {
+    [key: string]: {
+      name: string;
+      attribute: string;
+    }
+  }
+}
+
+enum OperandsKeys {
+  Character = 'Character',
+  Pokemon = 'Pokemon',
+  Planet = 'Planet',
+}
+
+enum Operation {
+  addition = 'addition',
+  subtraction = 'subtraction',
+  multiplication = 'multiplication',
+  division = 'division',
+  exponentiation = 'exponentiation',
+  modulus = 'modulus',
+  square_root = 'square_root',
+}
+
+function combineLatestWithOptional<T extends any[]>(
+  ...observables: { [K in keyof T]: Observable<T[K]> | null | undefined }
+): Observable<T[]> {
+  return combineLatest(
+    observables.map(obs => obs ? obs : of(null))
+  ) as Observable<T> ;
 }
