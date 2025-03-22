@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { PokemonService } from './pokemon.service';
 import { StarWarsService } from './star-wars.service';
-import { combineLatest, map, Observable, of, startWith, take } from 'rxjs';
+import { combineAll, combineLatest, filter, last, map, merge, Observable, of, pipe, retry, startWith, take, tap, timeout } from 'rxjs';
 import { ChatGptService } from './chatgpt.service';
 
 @Component({
@@ -12,9 +12,9 @@ import { ChatGptService } from './chatgpt.service';
 export class AppComponent implements OnInit {
   title = 'Aderesoapp';
 
-  pokemon: IPokemon | undefined;
-  starWarsCharacter: IStarWarsCharacter | undefined;
-  starWarsPlanet: IStarWarsPlanet | undefined;
+  pokemon: IPokemon[] = [];
+  starWarsCharacter: IStarWarsCharacter[] = [];
+  starWarsPlanet: IStarWarsPlanet[] = [];
 
   constructor(
     private readonly _pokemonService: PokemonService,
@@ -23,9 +23,9 @@ export class AppComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    let planet$: Observable<IStarWarsPlanet>;
-    let character$: Observable<IStarWarsCharacter>;
-    let pokemon$: Observable<IPokemon>;
+    let planet$: Observable<IStarWarsPlanet>[] = [];
+    let character$: Observable<IStarWarsCharacter>[] = [];
+    let pokemon$: Observable<IPokemon>[] = [];
 
     const body = {
       'model': 'gpt-4o-mini',
@@ -51,101 +51,134 @@ export class AppComponent implements OnInit {
             surface_water: number;
             population: number;
           }
-          you're and assistance than only speak JSON, a valid JSON in a single line that I could parse using JSON.parse() function.
-          In the paragraph, get the required arithmetic operation indicating the operation and the operands but not the result
+          you're and assistance than only speak plain JSON, a valid JSON in a single line that I could parse using JSON.parse() function.
+          Also you have a very wide knowledge about the world of Star Wars and Pokemon, so you can use that knowledge to create a valid JSON with accurate information.
+          In the paragraph, get the required arithmetic operation indicating the operation and the operands but not the result, make sure to add the keys of the operands in order according to the paragraph, same for the operation order.
           Example: {
-            operation: 'addition',
+            operation: ['addition'],
             operands: {
-              'Character': {
+              'Character': [{
                 name: 'Luke Skywalker',
                 attribute: 'mass'
-              },
-              'Pokemon': {
+              }],
+              'Pokemon': [{
                 name: 'Pikachu',
                 attribute: 'base_experience'
-              }
+              }],
+              'Planet': [
+                {
+                  name: 'Coruscant',
+                  attribute: 'orbital_period'
+                },
+                {
+                  name: 'Dorin',
+                  attribute: 'diameter'
+                }
+              ]
+            },
+            operationInstruction: 'Pokemon[0].base_experience#*#Planet[0].orbital_period#+#Character[0].mass#+#Planet[1].diameter'
           }
-          Paragraph:
-          En una galaxia muy, muy lejana, Luke Skywalker se encuentra en el planeta Tatooine, donde ha decidido entrenar a su nuevo compañero Pokémon, Vulpix. Mientras Luke mueve su sable de luz, se pregunta cuánta experiencia ganará al entrenar con Vulpix si su masa es multiplicada por la experiencia base que este Pokémon puede alcanzar. ¿Qué tan poderoso se volverá Luke con la ayuda de su amigo Pokémon?
+          The paragraph could be in Spanish or English, but the JSON must be in English.
+          Paragraph is:
+          En el bullicioso planeta de Coruscant, donde las luces de la ciudad nunca se apagan, un pequeño Oshawott emprende una misión matemática. Decide multiplicar su altura por la vasta población de Coruscant, un número tan grande como las estrellas en el cielo. Pero la aventura no termina ahí, pues Oshawott añade el diámetro del misterioso planeta Dorin al resultado de su cálculo. ¿Qué revelará este fascinante enigma intergaláctico sobre la relación entre un Pokémon y los planetas del universo?
           `},
       ]
     };
     this._chatGptService.sendMessage(body)
     .pipe(
-      map((response: any) => JSON.parse(response.choices[0].message.content))
+      timeout(120 * 1000),
+      tap(value => console.log('ChatGPT response:', value)),
+      map((response: any) => JSON.parse(response.choices[0].message.content)),
+      retry(1000),
     )
     .subscribe((response: IChatGptResponse) => {
       console.log('ChatGPT response:', response);
       for (const key in response.operands) {
         const operand = response.operands[key];
         if (key === OperandsKeys.Character) {
-          character$ = this.getCharacterByName(operand.name);
+          operand.forEach((character: any) => {
+            character$.push(this.getCharacterByName(character.name));
+          });
         } else if (key === OperandsKeys.Pokemon) {
-          pokemon$ = this.getPokemonByName(operand.name);
+          operand.forEach((pokemon: any) => {
+            pokemon$.push(this.getPokemonByName(pokemon.name));
+          });
         } else if (key === OperandsKeys.Planet) {
-          planet$ = this.getPlanetByName(operand.name);
+          operand.forEach((planet: any) => {
+            planet$.push(this.getPlanetByName(planet.name));
+          });
         }
       }
 
+      const subscriber = []
+      if (planet$.length > 0) {
+        subscriber.push(combineLatest(planet$));
+      } else {
+        subscriber.push(of([]));
+      }
+      if (character$.length > 0) {
+        subscriber.push(combineLatest(character$));
+      } else {
+        subscriber.push(of([]));
+      }
+      if (pokemon$.length > 0) {
+        subscriber.push(combineLatest(pokemon$));
+      } else {
+        subscriber.push(of([]));
+      }
 
-      combineLatestWithOptional(
-        planet$,
-        character$,
-        pokemon$,
-      )
+      combineLatest(subscriber)
       .subscribe(([planet, character, pokemon]) => {
-        console.log('Subscriptions:', planet, character, pokemon);
-        this.starWarsPlanet = planet as unknown as IStarWarsPlanet;
-        this.starWarsCharacter = character as unknown as IStarWarsCharacter;
-        this.pokemon = pokemon as unknown as IPokemon;
 
-        // const operation = response.operation;
-        // const operands = response.operands;
+        this.starWarsPlanet = planet as unknown as IStarWarsPlanet[];
+        this.starWarsCharacter = character as unknown as IStarWarsCharacter[];
+        this.pokemon = pokemon as unknown as IPokemon[];
+        let finalExpression = '';
+        response.operationInstruction.split('#')
+        .forEach((expression: string) => {
+          const indexStart = expression.indexOf('[');
+          if (indexStart === -1) {
+            finalExpression += expression;
+            return;
+          }
+          const indexEnd = expression.indexOf(']');
+          const attributeStart = expression.indexOf('.');
+          const index = +expression.substring(indexStart + 1, indexEnd);
+          const attribute = expression.substring(attributeStart + 1, expression.length);
+          const operand = expression.substring(0, indexStart);
 
-        let result: number | string;
-        // switch (operation) {
-        //   case Operation.addition:
-        //     result = character.height + pokemon.base_experience;
-        //     break;
-        //   case Operation.subtraction:
-        //     result = character.height - pokemon.base_experience;
-        //     break;
-        //   case Operation.multiplication:
-        //     result = character.height * pokemon.base_experience;
-        //     break;
-        //   case Operation.division:
-        //     result = character.height / pokemon.base_experience;
-        //     break;
-        //   case Operation.exponentiation:
-        //     result = Math.pow(character.height, pokemon.base_experience);
-        //     break;
-        //   case Operation.modulus:
-        //     result = character.height % pokemon.base_experience;
-        //     break;
-        //   case Operation.square_root:
-        //     result = Math.sqrt(character.height);
-        //     break;
-        //   default:
-        //     result = 'Invalid operation';
-        // }
-        // console.log('Result:', result);
+          if (operand === OperandsKeys.Character) {
+            const starWarCharacter = this.starWarsCharacter[index];
+            finalExpression += `${(starWarCharacter as any)[attribute]}`
+          } else if (operand === OperandsKeys.Pokemon) {
+            const pokemon = this.pokemon[index];
+            finalExpression += `${(pokemon as any)[attribute]}`
+          } else if (operand === OperandsKeys.Planet) {
+            const planet = this.starWarsPlanet[index];
+            finalExpression += `${(planet as any)[attribute]}`
+          }
+        });
+        console.log('Final expression:', finalExpression, 'Value', eval(finalExpression));
       });
+
     });
   }
 
   private getPlanetByName(planetName: string): Observable<IStarWarsPlanet> {
     return this._starWarsService.getPlanetDetailsByName(planetName)
       .pipe(
+        timeout(60 * 1000),
+        retry(1000),
         map((data: any) => {
           // transform to get next properties name, height, mass, homeworld
           data = data.results[0];
           return {
             name: data.name,
-            rotation_period: data.rotation_period,
-            orbital_period: data.orbital_period,
-            diameter: data.diameter,
-            surface_water: data.surface_water,
-            population: data.population,
+            rotation_period: +data.rotation_period,
+            orbital_period: +data.orbital_period,
+            diameter: +data.diameter,
+            surface_water: +data.surface_water,
+            population: +data.population,
           };
         })
       );
@@ -154,12 +187,14 @@ export class AppComponent implements OnInit {
   private getCharacterByName(characterName: string): Observable<IStarWarsCharacter> {
     return this._starWarsService.getPersonDetailsByName(characterName)
       .pipe(
+        timeout(60 * 1000),
+        retry(1000),
         map((data: any) => {
           data = data.results[0];
           return {
             name: data.name,
-            height: data.height,
-            mass: data.mass,
+            height: +data.height,
+            mass: +data.mass,
             homeworld: data.homeworld,
           };
         })
@@ -169,11 +204,13 @@ export class AppComponent implements OnInit {
   private getPokemonByName(pokemonName: string): Observable<IPokemon> {
     return this._pokemonService.getPokemonDetails(pokemonName)
       .pipe(
+        timeout(60 * 1000),
+        retry(1000),
         map((data: any) => ({
           name: data.name,
-          base_experience: data.base_experience,
-          height: data.height,
-          weight: data.weight,
+          base_experience: +data.base_experience,
+          height: +data.height,
+          weight: +data.weight,
         }))
       );
   }
@@ -201,13 +238,14 @@ interface IStarWarsPlanet {
 }
 
 interface IChatGptResponse {
-  operation: Operation,
+  operation: Operation[];
   operands: {
-    [key: string]: {
+    [key: string]: [{
       name: string;
       attribute: string;
-    }
-  }
+    }]
+  };
+  operationInstruction: string;
 }
 
 enum OperandsKeys {
