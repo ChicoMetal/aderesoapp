@@ -1,10 +1,17 @@
 <h1>{{title}}</h1>
+
+<p *ngIf="challenge">
+  Challenge: {{challenge | json}}
+</p>
+
 <p *ngIf="pokemon">
   pokemon: {{pokemon | json}}
 </p>
+
 <p *ngIf="starWarsCharacter">
   characters: {{starWarsCharacter | json}}
 </p>
+
 <p *ngIf="starWarsPlanet">
   planet: {{starWarsPlanet | json}}
 </p>

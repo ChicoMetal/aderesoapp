@@ -1,0 +1,92 @@
+
+
+      // combineLatestWithOptional(...subscriptors)
+      // .subscribe(([planet, character, pokemon]) => {
+      //   console.log('Subscriptions:', planet, character, pokemon);
+      //   this.starWarsPlanet = planet as unknown as IStarWarsPlanet;
+      //   this.starWarsCharacter = character as unknown as IStarWarsCharacter;
+      //   this.pokemon = pokemon as unknown as IPokemon;
+
+      //   const keys: OperandsKeys[] = Object.keys(response.operands) as OperandsKeys[];
+      //   let valueA: number;
+      //   let valueB: number;
+      //   if (keys[0] === OperandsKeys.Character) {
+      //     const characterAttribute = response.operands[keys[0]].attribute;
+      //     valueA = (this.starWarsCharacter as any)[characterAttribute];
+      //   } else if (keys[0] === OperandsKeys.Pokemon) {
+      //     const pokemonAttribute = response.operands[keys[0]].attribute;
+      //     valueA = (this.pokemon as any)[pokemonAttribute];
+      //   } else {
+      //     const planetAttribute = response.operands[keys[0]].attribute;
+      //     valueA = (this.starWarsPlanet as any)[planetAttribute];
+      //   }
+
+      //   if (keys[1] === OperandsKeys.Character) {
+      //     const characterAttribute = response.operands[keys[1]].attribute;
+      //     valueB = (this.starWarsCharacter as any)[characterAttribute] as number;
+      //   } else if (keys[1] === OperandsKeys.Pokemon) {
+      //     const pokemonAttribute = response.operands[keys[1]].attribute;
+      //     valueB = (this.pokemon as any)[pokemonAttribute] as number;
+      //   } else {
+      //     const planetAttribute = response.operands[keys[1]].attribute;
+      //     valueB = (this.starWarsPlanet as any)[planetAttribute] as number;
+      //   }
+
+      //   console.log('Value A:', valueA, typeof valueA);
+      //   console.log('Value B:', valueB, typeof valueB);
+
+      //   const operation: Operation[] = response.operation;
+      //   let result: number;
+
+      //   var operators = {
+      //     '+' : function(a: number, b: number) { return a + b; },
+      //     '-' : function(a: number, b: number) { return a - b; },
+      //     '*' : function(a: number, b: number) { return a * b; },
+      //     '**' : function(a: number, b: number) { return a ** b; },
+      //     '/' : function(a: number, b: number) { return a / b; },
+      //     '%' : function(a: number, b: number) { return a % b; },
+      //   };
+      //   result = valueA;
+      //   operation.forEach((operation: Operation) => {
+      //     let op: any;
+      //     if (operation === Operation.addition) {
+      //       op = operators['+'];
+      //     } else if (operation === Operation.subtraction) {
+      //       op = operators['-'];
+      //     } else if (operation === Operation.multiplication) {
+      //       op = operators['*'];
+      //     } else if (operation === Operation.division) {
+      //       op = operators['/'];
+      //     } else if (operation === Operation.exponentiation) {
+      //       op = operators['**'];
+      //     } else if (operation === Operation.modulus) {
+      //       op = operators['%'];
+      //     }
+      //     result = op(result, valueB);
+      //   });
+
+        // switch (operation) {
+        //   case Operation.addition:
+        //     result = valueA + valueB;
+        //     break;
+        //   case Operation.subtraction:
+        //     result = valueA - valueB;
+        //     break;
+        //   case Operation.multiplication:
+        //     result = valueA * valueB;
+        //     break;
+        //   case Operation.division:
+        //     result = valueA / valueB;
+        //     break;
+        //   case Operation.exponentiation:
+        //     result = Math.pow(valueA, valueB);
+        //     break;
+        //   case Operation.modulus:
+        //     result = valueA % valueB;
+        //     break;
+        //   case Operation.square_root:
+        //     result = Math.sqrt(valueA);
+        //     break;
+        // }
+        // console.log('Result:', result.toFixed(10));
+      // });

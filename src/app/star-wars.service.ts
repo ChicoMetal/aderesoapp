@@ -38,6 +38,14 @@ export class StarWarsService {
   }
 
   getPlanetDetailsByName(name: string): Observable<any> {
+    // fake a time out request of one minute
+    // return new Observable(observer => {
+    //   setTimeout(() => {
+    //     console.log('fake timeout');
+    //     observer.next(this.http.get<any>(`${this.apiUrl}/planets/?search=${name}`));
+    //     observer.complete();
+    //   }, 61 * 1000);
+    // });
     return this.http.get<any>(`${this.apiUrl}/planets/?search=${name}`);
   }
 }

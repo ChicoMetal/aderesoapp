@@ -7,6 +7,7 @@ export class ChatGptService {
 
   // private readonly apiUrl = 'https://recruiting.adere.so/chat_completion';
   private readonly apiUrl = '/api/chat_completion';
+  private readonly apiKey = '80649341-c3f7-4848-b155-f75cf50006f6'; // Replace with your actual API key
 
   constructor(private http: HttpClient) { }
 
