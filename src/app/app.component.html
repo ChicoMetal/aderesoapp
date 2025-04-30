@@ -1,10 +1,17 @@
 <h1>{{title}}</h1>
 
 <section>
-  <button mat-raised-button color="primary" (click)="solve()">Resolver challenge</button>
+  <div id="containerButtons">
+    <button mat-raised-button color="primary" (click)="solve()">Resolver challenge</button>
+    <button mat-raised-button color="accent" (click)="start()">Iniciar challenge</button>
+    <button mat-raised-button color="warn" (click)="avoid()">Omitir challenge</button>
+  </div>
 
   <mat-card class="currentChallenge"
-    *ngIf="(challenge === null || challenge === undefined || (challenge | keyvalue).length !== 0)">
+    *ngIf="(challenge != null || challenge != undefined) ||
+        pokemon.length > 0 ||
+        starWarsCharacter.length > 0 ||
+        starWarsPlanet.length > 0">
     <mat-card-header>
       <mat-card-subtitle>Challenge actual</mat-card-subtitle>
       <mat-card-title>...</mat-card-title>
@@ -20,15 +27,15 @@
       <mat-divider></mat-divider>
       <div *ngIf="results">
         <h3>Resultados</h3>
-        <p>
-          <b>GPTResponse:</b>
-          <ngx-json-viewer [json]="results.GPTResponse" [expanded]="false"></ngx-json-viewer>
-        </p>
         <div class="keyResults">
           <div><b>Expresion final:</b> {{results.finalExpression}}</div>
           <div *ngIf="results.solution"><b>Solucion:</b> {{results.solution}}</div>
           <div><b>Coincide:</b> {{results.coincidence ? 'Si ✅':'No ❌'}}</div>
         </div>
+        <p>
+          <b>GPTResponse:</b>
+          <ngx-json-viewer [json]="results.GPTResponse" [expanded]="false"></ngx-json-viewer>
+        </p>
       </div>
       <mat-accordion class="details" multi>
         <mat-expansion-panel>
@@ -63,7 +70,7 @@
       </mat-accordion>
     </mat-card-content>
     <mat-card-actions>
-      <button mat-raised-button (click)="solveChallenge(challenge)">Reintentar</button>
+      <button mat-raised-button (click)="solveChallenge(challenge)" [disabled]="results.coincidence">Reintentar</button>
     </mat-card-actions>
     <mat-card-footer>
       <!-- <mat-progress-bar mode="indeterminate"></mat-progress-bar> -->
@@ -88,15 +95,15 @@
         <mat-divider></mat-divider>
         <div *ngIf="solvedChallenge.results">
           <h3>Resultados</h3>
-          <p>
-            <b>GPTResponse:</b>
-            <ngx-json-viewer [json]="solvedChallenge.results.GPTResponse" [expanded]="false"></ngx-json-viewer>
-          </p>
           <div class="keyResults">
             <div><b>Expresion final:</b> {{solvedChallenge.results.finalExpression}}</div>
             <div *ngIf="solvedChallenge.results.solution"><b>Solucion:</b> {{solvedChallenge.results.solution}}</div>
             <div><b>Coincide:</b> {{solvedChallenge.results.coincidence ? 'Si ✅':'No ❌'}}</div>
           </div>
+          <p>
+            <b>GPTResponse:</b>
+            <ngx-json-viewer [json]="solvedChallenge.results.GPTResponse" [expanded]="false"></ngx-json-viewer>
+          </p>
         </div>
         <mat-accordion class="details" multi>
           <mat-expansion-panel>
