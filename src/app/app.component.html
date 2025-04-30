@@ -151,4 +151,15 @@
     <mat-spinner></mat-spinner>
   </div>
 </div>
-<!-- <input type="button" value="Resolver challenge" > -->
+<div id="counters" *ngIf="solvedChallenges.length > 0">
+  <p>
+    <mat-chip>
+      ✅ Exitosos: {{successCounter}} <br>
+    </mat-chip>
+  </p>
+  <p>
+    <mat-chip>
+      ❌ Fallidos: {{unsuccessCounter}} <br>
+    </mat-chip>
+  </p>
+</div>

@@ -1,8 +1,23 @@
+h1 {
+  text-align: center;
+  margin: 1rem 0;
+  font-size: 2rem;
+  font-weight: bold;
+}
 #containerButtons {
   display: flex;
   justify-content:space-evenly;
   align-items: center;
   margin: 1rem 0;
+}
+#counters {
+  // display elements in the right side and up, one on top of the other, always in the same position
+  position: fixed;
+  top: 2rem;
+  right: 1%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 #loading {
   position: fixed;

@@ -17,6 +17,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import {MatExpansionModule} from '@angular/material/expansion';
 import { NgxJsonViewerModule } from 'ngx-json-viewer';
+import {MatChipsModule} from '@angular/material/chips';
 
 export function loadConfig(configService: ConfigService) {
   return () => configService.loadConfig();
@@ -29,6 +30,7 @@ const ANGULAR_MATERIAL = [
   MatProgressBarModule,
   MatProgressSpinnerModule,
   MatExpansionModule,
+  MatChipsModule,
 ]
 
 @NgModule({

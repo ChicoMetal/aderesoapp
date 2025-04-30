@@ -13,17 +13,24 @@ import {
   mergeMap,
   Observable,
   of,
-  pipe,
   retry,
-  startWith,
-  take,
   tap,
   throwError,
   timeout
 } from 'rxjs';
 import { ChatGptService } from './chatgpt.service';
 import { ChallengeService } from './challenge.service';
-import { Challenge, IChatGptResponse, IPokemon, IResult, IStarWarsCharacter, IStarWarsPlanet, OperandsKeys, SolutionBody, SolvedChallenge } from './interfaces';
+import {
+  Challenge,
+  IChatGptResponse,
+  IPokemon,
+  IResult,
+  IStarWarsCharacter,
+  IStarWarsPlanet,
+  OperandsKeys,
+  SolutionBody,
+  SolvedChallenge
+} from './interfaces';
 
 @Component({
   selector: 'app-root',
@@ -31,7 +38,7 @@ import { Challenge, IChatGptResponse, IPokemon, IResult, IStarWarsCharacter, ISt
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements OnInit {
-  title = 'Aderesoapp';
+  title = 'AderesoApp';
 
   loading = false;
   pokemon: IPokemon[] = [];
@@ -46,6 +53,8 @@ export class AppComponent implements OnInit {
   }
 
   solvedChallenges: SolvedChallenge[] = [];
+  successCounter = 0;
+  unsuccessCounter = 0;
 
   constructor(
     private readonly _pokemonService: PokemonService,
@@ -280,7 +289,16 @@ export class AppComponent implements OnInit {
           challenge,
           response
         );
-      });
+      },
+    () => {},
+    () => {
+      this.successCounter = this.solvedChallenges.filter((challenge: SolvedChallenge) => {
+        return challenge.results.coincidence;
+      }).length;
+      this.unsuccessCounter = this.solvedChallenges.filter((challenge: SolvedChallenge) => {
+        return !challenge.results.coincidence;
+      }).length;
+    });
   }
 
   public buildFormula(
@@ -317,6 +335,7 @@ export class AppComponent implements OnInit {
     this.results.finalExpression = finalExpression;
     this.results.solution = +result;
     this.results.coincidence = result == challenge.solution;
+
     console.log('Result:', this.results);
     console.log('Final expression:', finalExpression, 'Value', result, challenge.solution);
     console.log('Value', result == challenge.solution);
@@ -325,12 +344,6 @@ export class AppComponent implements OnInit {
   private getPlanetByName(planetName: string): Observable<IStarWarsPlanet | null> {
     return this._starWarsService.getPlanetDetailsByName(planetName)
       .pipe(
-        // timeout(60 * 1000),
-        // tap(data => {
-        //   if(data?.count <= 0 || data?.results?.length > 0) {
-        //     throwError(() => new Error('Planet not found'));
-        //   }
-        // }),
         mergeMap((data: any) => {
           if (data?.count <= 0 || data?.results?.length <= 0) {
             return throwError(() => new Error('Planet not found'));
@@ -363,11 +376,6 @@ export class AppComponent implements OnInit {
   private getCharacterByName(characterName: string): Observable<IStarWarsCharacter | null> {
     return this._starWarsService.getPersonDetailsByName(characterName)
       .pipe(
-        // tap(data => {
-        //   if(data?.count <= 0 || data?.results?.length > 0) {
-        //     throwError(() => new Error('Character not found'));
-        //   }
-        // }),
         mergeMap((data: any) => {
           if (data?.count <= 0 || data?.results?.length <= 0) {
             return throwError(() => new Error('Character not found'));
@@ -397,11 +405,6 @@ export class AppComponent implements OnInit {
   private getPokemonByName(pokemonName: string): Observable<IPokemon | null> {
     return this._pokemonService.getPokemonDetails(pokemonName)
       .pipe(
-        // tap(data => {
-        //   if(data?.count <= 0 || data?.results?.length > 0) {
-        //     throwError(() => new Error('Pokemon not found'));
-        //   }
-        // }),
         mergeMap((data: any) => {
           if (data?.count <= 0 || data?.results?.length <= 0) {
             return throwError(() => new Error('Pokemon not found'));
