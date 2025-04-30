@@ -18,6 +18,12 @@ export class AppComponent implements OnInit {
   starWarsCharacter: IStarWarsCharacter[] = [];
   starWarsPlanet: IStarWarsPlanet[] = [];
   challenge: ChallengeTest = {} as unknown as ChallengeTest;
+  results: IResult = {
+    GPTResponse: undefined,
+    solution: 0,
+    finalExpression: '',
+    coincidence: false,
+  }
 
   solvedChallenges: SolvedChallenge[] = [];
 
@@ -139,18 +145,19 @@ export class AppComponent implements OnInit {
 
   private savedPreviousChallenge(): void {
     console.warn('this.challenge', this.challenge, )
-    // if (
-    //   (this.challenge === null || this.challenge === undefined || Object.keys(this.challenge).length === 0) &&
-    //   this.pokemon.length === 0 &&
-    //   this.starWarsCharacter.length === 0 &&
-    //   this.starWarsPlanet.length === 0
-    // ) return;
+    if (
+      (this.challenge === null || this.challenge === undefined || Object.keys(this.challenge).length === 0) &&
+      this.pokemon.length === 0 &&
+      this.starWarsCharacter.length === 0 &&
+      this.starWarsPlanet.length === 0
+    ) return;
 
     const challenge: SolvedChallenge = {
       pokemon: this.pokemon,
       starWarsCharacter: this.starWarsCharacter,
       starWarsPlanet: this.starWarsPlanet,
       challenge: this.challenge,
+      results: this.results,
     }
     this.solvedChallenges.unshift({...challenge});
     console.warn(challenge, this.solvedChallenges)
@@ -162,6 +169,12 @@ export class AppComponent implements OnInit {
     this.starWarsCharacter = [];
     this.starWarsPlanet = [];
     this.challenge = {} as unknown as ChallengeTest;
+    this.results = {
+      GPTResponse: undefined,
+      solution: 0,
+      finalExpression: '',
+      coincidence: false,
+    }
   }
 
   private calculate(
@@ -172,6 +185,7 @@ export class AppComponent implements OnInit {
     challenge: ChallengeTest,
   ) {
     console.log('ChatGPT response:', response);
+    this.results.GPTResponse = response;
     for (const key in response.operands) {
       const operand = response.operands[key];
       if (key === OperandsKeys.Character) {
@@ -241,6 +255,9 @@ export class AppComponent implements OnInit {
             }
           });
         const result = eval(finalExpression).toFixed(10);
+        this.results.finalExpression = finalExpression;
+        this.results.solution = result;
+        this.results.coincidence = result == challenge.solution;
         console.log('Final expression:', finalExpression, 'Value', result, challenge.solution);
         console.log('Result:', finalExpression, 'Value', result == challenge.solution);
       });
@@ -371,8 +388,15 @@ interface SolvedChallenge {
   starWarsCharacter: IStarWarsCharacter[];
   starWarsPlanet: IStarWarsPlanet[];
   challenge: ChallengeTest;
+  results: IResult;
 }
 
+interface IResult {
+  solution: number;
+  GPTResponse: IChatGptResponse | undefined;
+  finalExpression: string;
+  coincidence: boolean;
+}
 function combineLatestWithOptional<T extends any[]>(
   ...observables: { [K in keyof T]: Observable<T[K]> | null | undefined }
 ): Observable<T[]> {

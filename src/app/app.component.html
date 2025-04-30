@@ -4,10 +4,7 @@
   <button mat-raised-button color="primary" (click)="solve()">Resolver challenge</button>
 
   <mat-card class="currentChallenge"
-    *ngIf="(challenge === null || challenge === undefined || (challenge | keyvalue).length === 0) &&
-      pokemon.length === 0 &&
-      starWarsCharacter.length === 0 &&
-      starWarsPlanet.length === 0">
+    *ngIf="(challenge === null || challenge === undefined || (challenge | keyvalue).length !== 0)">
     <mat-card-header>
       <mat-card-subtitle>Challenge actual</mat-card-subtitle>
       <mat-card-title>...</mat-card-title>
@@ -18,32 +15,51 @@
         <p><b>Id:</b> {{challenge.id}}</p>
         <p><b>Challenge:</b> {{challenge.problem}}</p>
         <p><b>Expresion:</b> {{challenge.expression}}</p>
-        <p><b>Solucion:</b> {{challenge.solution}}</p>
+        <p *ngIf="challenge.solution"><b>Solucion:</b> {{challenge.solution}}</p>
       </div>
       <mat-divider></mat-divider>
-      <div *ngIf="pokemon && pokemon.length > 0">
-        <h4>Pokemons</h4>
-        <p *ngFor="let pokemon of pokemon">
-          <b>{{pokemon.name}}: </b> {{pokemon | json}}
+      <div *ngIf="results">
+        <h3>Resultados</h3>
+        <p>
+          <b>GPTResponse:</b>
+          <ngx-json-viewer [json]="results.GPTResponse" [expanded]="false"></ngx-json-viewer>
         </p>
+        <p><b>Solucion:</b> {{results.solution}}</p>
+        <p><b>Expresion final:</b> {{results.finalExpression}}</p>
+        <p *ngIf="results.solution"><b>Solucion:</b> {{results.solution}}</p>
+        <p><b>Coincide:</b> {{results.coincidence ? 'Si ✅':'No ❌'}}</p>
       </div>
-      <mat-divider></mat-divider>
+      <mat-accordion class="details" multi>
+        <mat-expansion-panel>
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              Detalles
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+            <div *ngIf="pokemon && pokemon.length > 0">
+              <h4>Pokemons</h4>
+              <p *ngFor="let pokemon of pokemon">
+                <b>{{pokemon.name}}: </b> {{pokemon | json}}
+              </p>
+            </div>
+            <mat-divider></mat-divider>
 
-      <div *ngIf="starWarsCharacter && starWarsCharacter.length > 0">
-        <h4>Characters</h4>
-        <p *ngFor="let character of starWarsCharacter">
-          <b>{{character.name}}: </b> {{character | json}}
-        </p>
-      </div>
-      <mat-divider></mat-divider>
+            <div *ngIf="starWarsCharacter && starWarsCharacter.length > 0">
+              <h4>Characters</h4>
+              <p *ngFor="let character of starWarsCharacter">
+                <b>{{character.name}}: </b> {{character | json}}
+              </p>
+            </div>
+            <mat-divider></mat-divider>
 
-      <div *ngIf="starWarsPlanet && starWarsPlanet.length > 0">
-        <h4>Planets</h4>
-        <p *ngFor="let planet of starWarsPlanet">
-          <b>{{planet.name}}: </b> {{planet | json}}
-        </p>
-      </div>
-      <mat-divider></mat-divider>
+            <div *ngIf="starWarsPlanet && starWarsPlanet.length > 0">
+              <h4>Planets</h4>
+              <p *ngFor="let planet of starWarsPlanet">
+                <b>{{planet.name}}: </b> {{planet | json}}
+              </p>
+            </div>
+        </mat-expansion-panel>
+      </mat-accordion>
     </mat-card-content>
     <mat-card-actions>
       <button mat-raised-button color="primary">Reintentar</button>
@@ -69,32 +85,51 @@
           <!-- Challenge: {{solvedChallenge.challenge | json}} -->
         </div>
         <mat-divider></mat-divider>
-        <div *ngIf="solvedChallenge.pokemon && solvedChallenge.pokemon.length > 0">
-          <h4>Pokemons</h4>
-          <p *ngFor="let pokemon of solvedChallenge.pokemon">
-            <b>{{pokemon.name}}: </b> {{pokemon | json}}
+        <div *ngIf="solvedChallenge.results">
+          <h3>Resultados</h3>
+          <p>
+            <b>GPTResponse:</b>
+            <ngx-json-viewer [json]="solvedChallenge.results.GPTResponse" [expanded]="false"></ngx-json-viewer>
           </p>
+          <p><b>Solucion:</b> {{solvedChallenge.results.solution}}</p>
+          <p><b>Expresion final:</b> {{solvedChallenge.results.finalExpression}}</p>
+          <p *ngIf="solvedChallenge.results.solution"><b>Solucion:</b> {{solvedChallenge.results.solution}}</p>
+          <p><b>Coincide:</b> {{solvedChallenge.results.coincidence ? 'Si ✅':'No ❌'}}</p>
         </div>
-        <mat-divider></mat-divider>
+        <mat-accordion class="details" multi>
+          <mat-expansion-panel>
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                Detalles
+              </mat-panel-title>
+            </mat-expansion-panel-header>
+              <div *ngIf="solvedChallenge.pokemon && solvedChallenge.pokemon.length > 0">
+                <h4>Pokemons</h4>
+                <p *ngFor="let pokemon of solvedChallenge.pokemon">
+                  <b>{{pokemon.name}}: </b> {{pokemon | json}}
+                </p>
+              </div>
+              <mat-divider></mat-divider>
 
-        <div *ngIf="solvedChallenge.starWarsCharacter && solvedChallenge.starWarsCharacter.length > 0">
-          <h4>Characters</h4>
-          <p *ngFor="let character of solvedChallenge.starWarsCharacter">
-            <b>{{character.name}}: </b> {{character | json}}
-          </p>
-        </div>
-        <mat-divider></mat-divider>
+              <div *ngIf="solvedChallenge.starWarsCharacter && solvedChallenge.starWarsCharacter.length > 0">
+                <h4>Characters</h4>
+                <p *ngFor="let character of solvedChallenge.starWarsCharacter">
+                  <b>{{character.name}}: </b> {{character | json}}
+                </p>
+              </div>
+              <mat-divider></mat-divider>
 
-        <div *ngIf="solvedChallenge.starWarsPlanet && solvedChallenge.starWarsPlanet.length > 0">
-          <h4>Planets</h4>
-          <p *ngFor="let planet of solvedChallenge.starWarsPlanet">
-            <b>{{planet.name}}: </b> {{planet | json}}
-          </p>
-        </div>
-        <mat-divider></mat-divider>
+              <div *ngIf="solvedChallenge.starWarsPlanet && solvedChallenge.starWarsPlanet.length > 0">
+                <h4>Planets</h4>
+                <p *ngFor="let planet of solvedChallenge.starWarsPlanet">
+                  <b>{{planet.name}}: </b> {{planet | json}}
+                </p>
+              </div>
+          </mat-expansion-panel>
+        </mat-accordion>
       </mat-card-content>
       <mat-card-actions>
-        <button mat-raised-button color="primary">Reintentar</button>
+        <!-- <button mat-raised-button color="primary">Reintentar</button> -->
       </mat-card-actions>
       <mat-card-footer>
         <!-- <mat-progress-bar mode="indeterminate"></mat-progress-bar> -->

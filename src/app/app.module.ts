@@ -15,6 +15,8 @@ import { MatCardModule } from '@angular/material/card';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
+import {MatExpansionModule} from '@angular/material/expansion';
+import { NgxJsonViewerModule } from 'ngx-json-viewer';
 
 export function loadConfig(configService: ConfigService) {
   return () => configService.loadConfig();
@@ -26,6 +28,7 @@ const ANGULAR_MATERIAL = [
   MatDividerModule,
   MatProgressBarModule,
   MatProgressSpinnerModule,
+  MatExpansionModule,
 ]
 
 @NgModule({
@@ -37,6 +40,7 @@ const ANGULAR_MATERIAL = [
     BrowserModule,
     BrowserAnimationsModule,
     HttpClientModule,
+    NgxJsonViewerModule,
   ],
   providers: [
     {
