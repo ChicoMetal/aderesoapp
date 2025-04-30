@@ -6,5 +6,13 @@
     "pathRewrite": {
       "^/api": ""
     }
+  },
+  "/swapi": {
+    "target": "https://swapi.dev/api",
+    "secure": false,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/swapi": ""
+    }
   }
 }

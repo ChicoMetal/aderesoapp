@@ -1,17 +1,110 @@
 <h1>{{title}}</h1>
 
-<p *ngIf="challenge">
-  Challenge: {{challenge | json}}
-</p>
+<section>
+  <button mat-raised-button color="primary" (click)="solve()">Resolver challenge</button>
 
-<p *ngIf="pokemon">
-  pokemon: {{pokemon | json}}
-</p>
+  <mat-card class="currentChallenge"
+    *ngIf="(challenge === null || challenge === undefined || (challenge | keyvalue).length === 0) &&
+      pokemon.length === 0 &&
+      starWarsCharacter.length === 0 &&
+      starWarsPlanet.length === 0">
+    <mat-card-header>
+      <mat-card-subtitle>Challenge actual</mat-card-subtitle>
+      <mat-card-title>...</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div *ngIf="challenge">
+        <h3>Informacion</h3>
+        <p><b>Id:</b> {{challenge.id}}</p>
+        <p><b>Challenge:</b> {{challenge.problem}}</p>
+        <p><b>Expresion:</b> {{challenge.expression}}</p>
+        <p><b>Solucion:</b> {{challenge.solution}}</p>
+      </div>
+      <mat-divider></mat-divider>
+      <div *ngIf="pokemon && pokemon.length > 0">
+        <h4>Pokemons</h4>
+        <p *ngFor="let pokemon of pokemon">
+          <b>{{pokemon.name}}: </b> {{pokemon | json}}
+        </p>
+      </div>
+      <mat-divider></mat-divider>
 
-<p *ngIf="starWarsCharacter">
-  characters: {{starWarsCharacter | json}}
-</p>
+      <div *ngIf="starWarsCharacter && starWarsCharacter.length > 0">
+        <h4>Characters</h4>
+        <p *ngFor="let character of starWarsCharacter">
+          <b>{{character.name}}: </b> {{character | json}}
+        </p>
+      </div>
+      <mat-divider></mat-divider>
 
-<p *ngIf="starWarsPlanet">
-  planet: {{starWarsPlanet | json}}
-</p>
+      <div *ngIf="starWarsPlanet && starWarsPlanet.length > 0">
+        <h4>Planets</h4>
+        <p *ngFor="let planet of starWarsPlanet">
+          <b>{{planet.name}}: </b> {{planet | json}}
+        </p>
+      </div>
+      <mat-divider></mat-divider>
+    </mat-card-content>
+    <mat-card-actions>
+      <button mat-raised-button color="primary">Reintentar</button>
+    </mat-card-actions>
+    <mat-card-footer>
+      <!-- <mat-progress-bar mode="indeterminate"></mat-progress-bar> -->
+    </mat-card-footer>
+  </mat-card>
+
+  <div class="solvedChallenges">
+    <mat-card class="challengeSolved" *ngFor="let solvedChallenge of solvedChallenges">
+      <mat-card-header>
+        <mat-card-subtitle>Challenge</mat-card-subtitle>
+        <mat-card-title>...</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div *ngIf="solvedChallenge.challenge">
+          <h3>Informacion</h3>
+          <p><b>Id:</b> {{solvedChallenge.challenge.id}}</p>
+          <p><b>Challenge:</b> {{solvedChallenge.challenge.problem}}</p>
+          <p><b>Expresion:</b> {{solvedChallenge.challenge.expression}}</p>
+          <p><b>Solucion:</b> {{solvedChallenge.challenge.solution}}</p>
+          <!-- Challenge: {{solvedChallenge.challenge | json}} -->
+        </div>
+        <mat-divider></mat-divider>
+        <div *ngIf="solvedChallenge.pokemon && solvedChallenge.pokemon.length > 0">
+          <h4>Pokemons</h4>
+          <p *ngFor="let pokemon of solvedChallenge.pokemon">
+            <b>{{pokemon.name}}: </b> {{pokemon | json}}
+          </p>
+        </div>
+        <mat-divider></mat-divider>
+
+        <div *ngIf="solvedChallenge.starWarsCharacter && solvedChallenge.starWarsCharacter.length > 0">
+          <h4>Characters</h4>
+          <p *ngFor="let character of solvedChallenge.starWarsCharacter">
+            <b>{{character.name}}: </b> {{character | json}}
+          </p>
+        </div>
+        <mat-divider></mat-divider>
+
+        <div *ngIf="solvedChallenge.starWarsPlanet && solvedChallenge.starWarsPlanet.length > 0">
+          <h4>Planets</h4>
+          <p *ngFor="let planet of solvedChallenge.starWarsPlanet">
+            <b>{{planet.name}}: </b> {{planet | json}}
+          </p>
+        </div>
+        <mat-divider></mat-divider>
+      </mat-card-content>
+      <mat-card-actions>
+        <button mat-raised-button color="primary">Reintentar</button>
+      </mat-card-actions>
+      <mat-card-footer>
+        <!-- <mat-progress-bar mode="indeterminate"></mat-progress-bar> -->
+      </mat-card-footer>
+    </mat-card>
+  </div>
+</section>
+<div id="loading" *ngIf="loading">
+  <div id="spinner">
+    <mat-spinner></mat-spinner>
+  </div>
+</div>
+<!-- <input type="button" value="Resolver challenge" > -->

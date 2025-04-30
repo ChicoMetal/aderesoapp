@@ -5,7 +5,8 @@ import { Observable } from 'rxjs';
 @Injectable()
 export class StarWarsService {
 
-  private apiUrl = 'https://swapi.dev/api';
+  // private apiUrl = 'https://swapi.dev/api';
+  private apiUrl = '/swapi';
 
   constructor(private http: HttpClient) { }
 
