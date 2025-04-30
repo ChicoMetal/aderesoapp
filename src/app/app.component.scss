@@ -25,3 +25,11 @@
   width: 48%;
   margin: 1rem 0.5%;
 }
+.keyResults {
+  //alling in the same line
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: stretch;
+  margin: 1rem 0;
+}

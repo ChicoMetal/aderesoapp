@@ -41,10 +41,6 @@ export class AppComponent implements OnInit {
     this.loading = true;
     this.savedPreviousChallenge();
 
-    let planet$: Observable<IStarWarsPlanet>[] = [];
-    let character$: Observable<IStarWarsCharacter>[] = [];
-    let pokemon$: Observable<IPokemon>[] = [];
-
     this._challengeService.getChallengeTest()
     .pipe(
       catchError((error) => {
@@ -53,98 +49,103 @@ export class AppComponent implements OnInit {
       }),
     )
     .subscribe((challenge: ChallengeTest) => {
-        console.log('Challenge:', challenge);
-        this.challenge = challenge;
-        const body = {
-          'model': 'gpt-4o-mini',
-          'messages': [
-            {'role': 'developer', 'content': `Given the next three possible data objects.
-              Character: {
-                name: string;
-                height: number;
-                mass: number;
-                homeworld: string;
-              }
-              Pokemon: {
-                name: string;
-                base_experience: number;
-                height: number;
-                weight: number;
-              }
-              Planet: {
-                name: string;
-                rotation_period: number;
-                orbital_period: number;
-                diameter: number;
-                surface_water: number;
-                population: number;
-              }
-              you're and assistance than only speak plain JSON, a valid JSON in a single line that I could parse using JSON.parse() function.
-              Also you have a very wide knowledge about the world of Star Wars and Pokemon, so you can use that knowledge to create a valid JSON with accurate information.
-              In the paragraph, get the required arithmetic operation indicating the operation and the operands but not the result, make sure to add the keys of the operands in order according to the paragraph, same for the operation order.
-              Example: {
-                operation: ['addition'],
-                operands: {
-                  'Character': [
-                    {
-                      name: 'Luke Skywalker',
-                      attribute: 'mass'
-                    },
-                    {
-                      name: 'Leia Organa',
-                      attribute: 'height'
-                    }
-                  ],
-                  'Pokemon': [
-                    {
-                      name: 'Pikachu',
-                      attribute: 'base_experience'
-                    },
-                    {
-                      name: 'Charmander',
-                      attribute: 'height'
-                    }
-                  ],
-                  'Planet': [
-                    {
-                      name: 'Coruscant',
-                      attribute: 'orbital_period'
-                    },
-                    {
-                      name: 'Dorin',
-                      attribute: 'diameter'
-                    }
-                  ]
-                },
-                operationInstruction: 'Pokemon[0].base_experience#*#Planet[0].orbital_period#+#Character[0].mass#+#Planet[1].diameter'
-              }
-              The paragraph could be in Spanish or English, but the JSON must be in English.
-              Also make sure that only the operator symbols are always in middle of the symbol #, right before and right after.
-              Remember to think step by step to make sure you're doing the right thing, especially categorizing the StarWar Character, StarWar Planets and Pokemons.
-              Paragraph is:
-              ${challenge.problem}
-              `},
-          ]
-        };
-        this._chatGptService.sendMessage(body)
-          .pipe(
-            timeout(120 * 1000),
-            tap(value => console.log('ChatGPT response:', value)),
-            map((response: any) => JSON.parse(response.choices[0].message.content)),
-            retry({ count: 3, delay: 1000 }),
-            catchError((error) => {
-              this.loading = false;
-              return error;
-            }),
-          )
-          .subscribe((response: IChatGptResponse) => {
-            this.calculate(response, character$, pokemon$, planet$, challenge);
-          });
+      console.log('Challenge:', challenge);
+      this.challenge = challenge;
+      this.solveChallenge(challenge);
     });
   }
 
+  solveChallenge(challenge: ChallengeTest): void {
+    this.loading = true;
+    const body = {
+      'model': 'gpt-4o-mini',
+      'messages': [
+        {'role': 'developer', 'content': `Given the next three possible data objects.
+          Character: {
+            name: string;
+            height: number;
+            mass: number;
+            homeworld: string;
+          }
+          Pokemon: {
+            name: string;
+            base_experience: number;
+            height: number;
+            weight: number;
+          }
+          Planet: {
+            name: string;
+            rotation_period: number;
+            orbital_period: number;
+            diameter: number;
+            surface_water: number;
+            population: number;
+          }
+          you're and assistance than only speak plain JSON, a valid JSON in a single line that I could parse using JSON.parse() function.
+          Also you have a very wide knowledge about the world of Star Wars and Pokemon, so you can use that knowledge to create a valid JSON with accurate information.
+          In the paragraph, get the required arithmetic operation indicating the operation and the operands but not the result, make sure to add the keys of the operands in order according to the paragraph, same for the operation order.
+          Example: {
+            operation: ['addition'],
+            operands: {
+              'Character': [
+                {
+                  name: 'Luke Skywalker',
+                  attribute: 'mass'
+                },
+                {
+                  name: 'Leia Organa',
+                  attribute: 'height'
+                }
+              ],
+              'Pokemon': [
+                {
+                  name: 'Pikachu',
+                  attribute: 'base_experience'
+                },
+                {
+                  name: 'Charmander',
+                  attribute: 'height'
+                }
+              ],
+              'Planet': [
+                {
+                  name: 'Coruscant',
+                  attribute: 'orbital_period'
+                },
+                {
+                  name: 'Dorin',
+                  attribute: 'diameter'
+                }
+              ]
+            },
+            operationInstruction: 'Pokemon[0].base_experience#*#Planet[0].orbital_period#+#Character[0].mass#+#Planet[1].diameter'
+          }
+          The paragraph could be in Spanish or English, but the JSON must be in English.
+          Also make sure that only the operator symbols are always in middle of the symbol #, right before and right after.
+          Remember to think step by step to make sure you're doing the right thing, especially categorizing the StarWar Character, StarWar Planets and Pokemons.
+          Paragraph is:
+          ${challenge.problem}
+          `},
+      ]
+    };
+    this._chatGptService.sendMessage(body)
+      .pipe(
+        timeout(120 * 1000),
+        tap(value => console.log('ChatGPT response:', value)),
+        map((response: any) => JSON.parse(response.choices[0].message.content)),
+        retry({ count: 3, delay: 1000 }),
+        catchError((error) => {
+          this.loading = false;
+          return error;
+        }),
+      )
+      .subscribe((response: IChatGptResponse) => {
+        this.calculate(response, challenge);
+      });
+  }
+
   private savedPreviousChallenge(): void {
-    console.warn('this.challenge', this.challenge, )
+
     if (
       (this.challenge === null || this.challenge === undefined || Object.keys(this.challenge).length === 0) &&
       this.pokemon.length === 0 &&
@@ -179,11 +180,12 @@ export class AppComponent implements OnInit {
 
   private calculate(
     response: IChatGptResponse,
-    character$: Observable<IStarWarsCharacter>[],
-    pokemon$: Observable<IPokemon>[],
-    planet$: Observable<IStarWarsPlanet>[],
     challenge: ChallengeTest,
   ) {
+    let planet$: Observable<IStarWarsPlanet>[] = [];
+    let character$: Observable<IStarWarsCharacter>[] = [];
+    let pokemon$: Observable<IPokemon>[] = [];
+
     console.log('ChatGPT response:', response);
     this.results.GPTResponse = response;
     for (const key in response.operands) {

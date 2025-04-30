@@ -24,10 +24,11 @@
           <b>GPTResponse:</b>
           <ngx-json-viewer [json]="results.GPTResponse" [expanded]="false"></ngx-json-viewer>
         </p>
-        <p><b>Solucion:</b> {{results.solution}}</p>
-        <p><b>Expresion final:</b> {{results.finalExpression}}</p>
-        <p *ngIf="results.solution"><b>Solucion:</b> {{results.solution}}</p>
-        <p><b>Coincide:</b> {{results.coincidence ? 'Si ✅':'No ❌'}}</p>
+        <div class="keyResults">
+          <div><b>Expresion final:</b> {{results.finalExpression}}</div>
+          <div *ngIf="results.solution"><b>Solucion:</b> {{results.solution}}</div>
+          <div><b>Coincide:</b> {{results.coincidence ? 'Si ✅':'No ❌'}}</div>
+        </div>
       </div>
       <mat-accordion class="details" multi>
         <mat-expansion-panel>
@@ -62,7 +63,7 @@
       </mat-accordion>
     </mat-card-content>
     <mat-card-actions>
-      <button mat-raised-button color="primary">Reintentar</button>
+      <button mat-raised-button (click)="solveChallenge(challenge)">Reintentar</button>
     </mat-card-actions>
     <mat-card-footer>
       <!-- <mat-progress-bar mode="indeterminate"></mat-progress-bar> -->
@@ -91,10 +92,11 @@
             <b>GPTResponse:</b>
             <ngx-json-viewer [json]="solvedChallenge.results.GPTResponse" [expanded]="false"></ngx-json-viewer>
           </p>
-          <p><b>Solucion:</b> {{solvedChallenge.results.solution}}</p>
-          <p><b>Expresion final:</b> {{solvedChallenge.results.finalExpression}}</p>
-          <p *ngIf="solvedChallenge.results.solution"><b>Solucion:</b> {{solvedChallenge.results.solution}}</p>
-          <p><b>Coincide:</b> {{solvedChallenge.results.coincidence ? 'Si ✅':'No ❌'}}</p>
+          <div class="keyResults">
+            <div><b>Expresion final:</b> {{solvedChallenge.results.finalExpression}}</div>
+            <div *ngIf="solvedChallenge.results.solution"><b>Solucion:</b> {{solvedChallenge.results.solution}}</div>
+            <div><b>Coincide:</b> {{solvedChallenge.results.coincidence ? 'Si ✅':'No ❌'}}</div>
+          </div>
         </div>
         <mat-accordion class="details" multi>
           <mat-expansion-panel>
