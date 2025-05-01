@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { map, Observable, tap } from 'rxjs';
 import { ConfigService } from './config.service';
 
 @Injectable()
@@ -32,6 +32,16 @@ export class ChallengeService {
 
   solve(body: {problem_id: string, answer: number}): Observable<any> {
 
-    return this.http.post<any>(`${this.apiUrl}/solution/deleteme`, body, { headers: this.headers });
+    return this.http.post<any>(`${this.apiUrl}/solution/deleteme`, body, { headers: this.headers }).pipe(
+      tap(result => {
+        console.log('Solve result:', result);
+      }),
+      map(result => {
+        return {
+          id: result.next_problem.id,
+          problem: result.next_problem.problem,
+        }
+      }),
+    );
   }
 }

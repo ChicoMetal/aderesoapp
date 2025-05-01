@@ -4,12 +4,9 @@ import { StarWarsService } from './star-wars.service';
 import {
   catchError,
   combineLatest,
-  concatMap,
   filter,
   finalize,
-  last,
   map,
-  merge,
   mergeMap,
   Observable,
   of,
