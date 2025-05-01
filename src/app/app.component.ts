@@ -285,10 +285,12 @@ export class AppComponent implements OnInit {
         this.starWarsCharacter = character as unknown as IStarWarsCharacter[];
         this.pokemon = pokemon as unknown as IPokemon[];
 
-        this.buildFormula(
-          challenge,
-          response
-        );
+        // this.buildFormula(
+        //   challenge,
+        //   response
+        // );
+        this.challenge = challenge;
+        this.parseResponse(response);
       },
     () => {},
     () => {
@@ -301,44 +303,141 @@ export class AppComponent implements OnInit {
     });
   }
 
-  public buildFormula(
-    challenge: Challenge,
-    response: IChatGptResponse,
-  ): void {
-    let finalExpression = '';
-    response.operationInstruction.split('#')
-      .forEach((expression: string) => {
-        const indexStart = expression.indexOf('[');
-        if (indexStart === -1) {
-          finalExpression += expression;
-          return;
-        }
-        const indexEnd = expression.indexOf(']');
-        const attributeStart = expression.indexOf('.');
-        const index = +expression.substring(indexStart + 1, indexEnd);
-        const attribute = expression.substring(attributeStart + 1, expression.length);
-        const operand = expression.substring(0, indexStart);
+  /**
+   * Parses and evaluates complex expressions including nested operations
+   */
+  private evaluateExpression(expression: string): string {
+    // Define collections mapping for cleaner access
+    const collections: OperandCollection = {
+      [OperandsKeys.Character]: this.starWarsCharacter,
+      [OperandsKeys.Pokemon]: this.pokemon,
+      [OperandsKeys.Planet]: this.starWarsPlanet
+    };
 
-        if (operand === OperandsKeys.Character) {
-          const starWarCharacter = this.starWarsCharacter[index];
-          finalExpression += `${(starWarCharacter as any)[attribute]}`;
-        } else if (operand === OperandsKeys.Pokemon) {
-          const pokemon = this.pokemon[index];
-          finalExpression += `${(pokemon as any)[attribute]}`;
-        } else if (operand === OperandsKeys.Planet) {
-          const planet = this.starWarsPlanet[index];
-          finalExpression += `${(planet as any)[attribute]}`;
-        }
-      });
-    console.log('finalExpression:', finalExpression);
-    const result = eval(finalExpression).toFixed(10);
-    this.results.finalExpression = finalExpression;
+    // Tokenize the expression by splitting on operators but preserve them
+    const tokens = expression.split(/(#\+#|#\-#|#\*#|#\/#|#\(#|#\)#)/);
+
+    // Process parentheses first using a recursive approach
+    let processedExpression = this.processParentheses(tokens.join(''), collections);
+
+    // Evaluate the mathematical expression
+    try {
+      // Replace any remaining operand references with their values
+      processedExpression = this.replaceOperandReferences(processedExpression, collections);
+
+      // Convert math operators from #op# format to standard operators
+      const mathExpression = processedExpression
+        .replace(/#\+#/g, '+')
+        .replace(/#\-#/g, '-')
+        .replace(/#\*#/g, '*')
+        .replace(/#\/#/g, '/');
+
+      // Safely evaluate the mathematical expression
+      this.results.finalExpression = mathExpression;
+      return this.evaluateMathExpression(mathExpression);
+    } catch (e) {
+      console.error('Error evaluating expression:', e);
+      return processedExpression; // Return the processed string if evaluation fails
+    }
+  }
+
+  /**
+   * Process parentheses in the expression recursively
+   */
+  private processParentheses(expression: string, collections: OperandCollection): string {
+    const parenRegex = /#\(#(.*?)#\)#/;
+    let result = expression;
+    let match;
+
+    // Keep processing nested parentheses until none remain
+    while ((match = parenRegex.exec(result)) !== null) {
+      const subExpr = match[1];
+      // Process the sub-expression (recursively handle nested parentheses)
+      const processedSubExpr = this.processParentheses(subExpr, collections);
+      // Replace operand references in the sub-expression
+      const resolvedSubExpr = this.replaceOperandReferences(processedSubExpr, collections);
+      // Convert to standard operators for evaluation
+      const mathSubExpr = resolvedSubExpr
+        .replace(/#\+#/g, '+')
+        .replace(/#\-#/g, '-')
+        .replace(/#\*#/g, '*')
+        .replace(/#\/#/g, '/');
+
+      // Evaluate the mathematical expression
+      const evaluatedSubExpr = this.evaluateMathExpression(mathSubExpr);
+
+      // Replace the original parenthesized expression with its evaluated result
+      result = result.replace(match[0], evaluatedSubExpr);
+    }
+
+    return result;
+  }
+
+  /**
+   * Replace operand references with their actual values
+   */
+  private replaceOperandReferences(expression: string, collections: OperandCollection): string {
+    // Match pattern like Character[0].height
+    const operandRegex = /([A-Za-z]+)\[(\d+)\]\.([A-Za-z_]+)/g;
+
+    return expression.replace(operandRegex, (match, operand, indexStr, attribute) => {
+      const index = +indexStr;
+      const collection = collections[operand as keyof OperandCollection];
+
+      if (!collection) {
+        console.warn(`Unknown operand: ${operand}`);
+        return match; // Return original text if operand unknown
+      }
+
+      const item = collection[index];
+      if (!item) {
+        console.warn(`Item not found at index ${index} for operand ${operand}`);
+        return match; // Return original text if item not found
+      }
+
+      const value = item[attribute];
+      if (value === undefined) {
+        console.warn(`Attribute ${attribute} not found for ${operand}[${index}]`);
+        return match; // Return original text if attribute not found
+      }
+
+      return String(value);
+    });
+  }
+
+  /**
+   * Safely evaluate a mathematical expression
+   */
+  private evaluateMathExpression(expression: string): string {
+    // Use Function constructor to evaluate the mathematical expression
+    // This is safer than eval() but still needs to be used with trusted input only
+    try {
+      // Only allow numeric values and basic operators
+      if (!/^[\d\s\+\-\*\/\(\)\.]+$/.test(expression)) {
+        throw new Error('Invalid characters in expression');
+      }
+
+      const result = new Function(`return ${expression}`)().toFixed(10);
+      return String(result);
+    } catch (e) {
+      console.error('Failed to evaluate expression:', expression, e);
+      return expression; // Return the original expression if evaluation fails
+    }
+  }
+
+
+  /**
+   * Main entry point to parse the response's operation instruction
+   */
+  public parseResponse(response: IChatGptResponse): void {
+    if (!response?.operationInstruction) {
+      return;
+    }
+
+    const result = this.evaluateExpression(response.operationInstruction);
+
     this.results.solution = +result;
-    this.results.coincidence = result == challenge.solution;
-
-    console.log('Result:', this.results);
-    console.log('Final expression:', finalExpression, 'Value', result, challenge.solution);
-    console.log('Value', result == challenge.solution);
+    this.results.coincidence = +result == this.challenge.solution;
   }
 
   private getPlanetByName(planetName: string): Observable<IStarWarsPlanet | null> {
@@ -446,4 +545,10 @@ function combineLatestWithOptional<T extends any[]>(
   return combineLatest(
     observables.map(obs => obs ? obs : of(null))
   ) as Observable<T> ;
+}
+
+interface OperandCollection {
+  [OperandsKeys.Character]: any[];
+  [OperandsKeys.Pokemon]: any[];
+  [OperandsKeys.Planet]: any[];
 }
