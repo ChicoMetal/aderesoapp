@@ -74,3 +74,9 @@ export interface SolutionBody {
   problem_id: string;
   answer: number;
 }
+
+export interface OperandCollection {
+  [OperandsKeys.Character]: any[];
+  [OperandsKeys.Pokemon]: any[];
+  [OperandsKeys.Planet]: any[];
+}

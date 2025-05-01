@@ -24,6 +24,7 @@ import {
   IResult,
   IStarWarsCharacter,
   IStarWarsPlanet,
+  OperandCollection,
   OperandsKeys,
   SolutionBody,
   SolvedChallenge
@@ -292,10 +293,6 @@ export class AppComponent implements OnInit {
         this.starWarsCharacter = character as unknown as IStarWarsCharacter[];
         this.pokemon = pokemon as unknown as IPokemon[];
 
-        // this.buildFormula(
-        //   challenge,
-        //   response
-        // );
         this.challenge = challenge;
         this.parseResponse(response);
       },
@@ -546,16 +543,4 @@ export class AppComponent implements OnInit {
 }
 
 
-function combineLatestWithOptional<T extends any[]>(
-  ...observables: { [K in keyof T]: Observable<T[K]> | null | undefined }
-): Observable<T[]> {
-  return combineLatest(
-    observables.map(obs => obs ? obs : of(null))
-  ) as Observable<T> ;
-}
 
-interface OperandCollection {
-  [OperandsKeys.Character]: any[];
-  [OperandsKeys.Pokemon]: any[];
-  [OperandsKeys.Planet]: any[];
-}
