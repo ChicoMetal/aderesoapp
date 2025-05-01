@@ -5,6 +5,27 @@
     <button mat-raised-button color="primary" (click)="solve()">Resolver challenge</button>
     <button mat-raised-button color="accent" (click)="start()">Iniciar challenge</button>
     <button mat-raised-button color="warn" (click)="avoid()">Omitir challenge</button>
+    <div id="manualID">
+      <mat-form-field class="example-form-field">
+        <mat-label>Iniciar con ID manual</mat-label>
+        <input matInput type="text" [(ngModel)]="manualID">
+        <button *ngIf="manualID" matSuffix mat-icon-button aria-label="Clear" (click)="manualID=''">
+          <mat-icon>close</mat-icon>
+        </button>
+      </mat-form-field>
+      <mat-form-field class="example-form-field">
+        <mat-label>value</mat-label>
+        <input matInput type="text" [(ngModel)]="manualValue">
+        <button *ngIf="manualValue" matSuffix mat-icon-button aria-label="Clear" (click)="manualValue=0">
+          <mat-icon>close</mat-icon>
+        </button>
+      </mat-form-field>
+      <div class="example-button-container">
+        <button mat-fab color="basic" aria-label="Iniciar con id" (click)="continue(manualID, manualValue)">
+          <mat-icon>send</mat-icon>
+        </button>
+      </div>
+    </div>
   </div>
 
   <mat-card class="currentChallenge"

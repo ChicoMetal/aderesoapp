@@ -53,6 +53,8 @@ export class AppComponent implements OnInit {
   }
 
   solvedChallenges: SolvedChallenge[] = [];
+  manualID = '';
+  manualValue = 0;
   successCounter = 0;
   unsuccessCounter = 0;
 
@@ -170,6 +172,14 @@ export class AppComponent implements OnInit {
 
   start(): void {
     this.getAndResolve(() => this._challengeService.startChallenge());
+  }
+
+  continue(manualID: string, manualValue: number): void {
+    const body: SolutionBody = {
+      problem_id: manualID,
+      answer: manualValue,
+    }
+    this.getAndResolve(() => this._challengeService.solve(body));
   }
   avoid(): void {
     const body: SolutionBody = {

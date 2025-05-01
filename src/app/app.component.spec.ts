@@ -5,6 +5,7 @@ import { PokemonService } from './pokemon.service';
 import { StarWarsService } from './star-wars.service';
 import { ChallengeService } from './challenge.service';
 import { ChatGptService } from './chatgpt.service';
+import { NO_ERRORS_SCHEMA } from '@angular/core';
 
 describe('AppComponent', () => {
   beforeEach(async () => {
@@ -29,7 +30,8 @@ describe('AppComponent', () => {
           provide: ChatGptService,
           useValue: jasmine.createSpyObj('ChatGptService', ['getChatGptResponse'])
         }
-      ]
+      ],
+      schemas: [NO_ERRORS_SCHEMA],
     }).compileComponents();
   });
 
@@ -109,9 +111,10 @@ describe('AppComponent', () => {
     component.pokemon = pokemons as IPokemon[];
     component.starWarsCharacter = characters as IStarWarsCharacter[];
     component.starWarsPlanet = planets as IStarWarsPlanet[];
+    component.challenge = challenge;
 
     // Act
-    component.buildFormula(challenge, GPTResponse);
+    component.parseResponse(GPTResponse);
 
     // Assert
     expect(component.challenge.solution).toBe(component.results.solution);
